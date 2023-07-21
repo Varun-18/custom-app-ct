@@ -1,0 +1,19 @@
+query fetchProducts($id: String) {
+  product(id: $id) {
+    id
+    skus
+    createdAt
+    lastModifiedAt
+    key
+    masterData {
+      current {
+        name(locale: "en")
+        categories {
+          id
+          name(locale: "en")
+        }
+      }
+      published
+    }
+  }
+}
