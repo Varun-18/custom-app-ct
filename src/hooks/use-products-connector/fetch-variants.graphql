@@ -1,0 +1,24 @@
+query fetchVariants($id: String) {
+  product(id: $id) {
+    masterData {
+      current {
+        allVariants {
+          id
+          key
+          sku
+
+          prices {
+            value {
+              currencyCode
+              centAmount
+              fractionDigits
+            }
+          }
+          attributesRaw {
+            name
+          }
+        }
+      }
+    }
+  }
+}

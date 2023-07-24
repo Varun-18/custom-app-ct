@@ -1,1 +1,1 @@
-export { useProductsFetcher, useProductFetcher } from './use-products-connector';
+export { useProductsFetcher, useProductFetcher, fetchVariants } from './use-products-connector';

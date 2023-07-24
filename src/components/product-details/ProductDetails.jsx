@@ -1,72 +1,115 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  FormModalPage,
   TabHeader,
-  TabularMainPage,
+  TabularModalPage,
 } from '@commercetools-frontend/application-components';
 import { useProductFetcher } from '../../hooks/use-products-connector';
-import { useForm } from 'react-hook-form';
 import { Switch, useParams, useRouteMatch } from 'react-router-dom';
-import { useEffect } from 'react';
 import LoadingSpinner from '@commercetools-uikit/loading-spinner';
 import Spacings from '@commercetools-uikit/spacings';
 import { SuspendedRoute } from '@commercetools-frontend/application-shell';
+import { useIntl } from 'react-intl';
+import GenralInfo from './GenralInfo';
+import { docToFormValues } from './conversions';
+import { useApplicationContext } from '@commercetools-frontend/application-shell-connectors';
+import { useFormik } from 'formik';
+import Grid from '@commercetools-uikit/grid';
+import Text from '@commercetools-uikit/text';
+import Variants from './Variants';
 
 const ProductDetails = (props) => {
-  console.log('productDeatails callled');
-
-  const match = useRouteMatch();
-  const { register, setValue } = useForm();
-  const [tab, setTab] = useState(0);
+  const intl = useIntl();
   const { id } = useParams();
   const { data, loading } = useProductFetcher({ id });
+  const match = useRouteMatch();
+  const { dataLocale, projectLanguages } = useApplicationContext((context) => ({
+    dataLocale: context.dataLocale ?? '',
+    projectLanguages: context.project?.languages ?? [],
+  }));
 
-  // useEffect(() => {
-  //   if (data) {
-  //     setValue('name', data?.product?.masterData?.current?.name);
-  //     setValue('key', data?.product?.key);
-  //   }
-  // }, [loading]);
-
+  const formData = docToFormValues(data, projectLanguages);
+  console.log(formData, 'form data');
   console.log(data);
+
+  const formik = useFormik({
+    initialValues: formData,
+    enableReinitialize: true,
+  });
 
   if (loading) {
     return <LoadingSpinner />;
   } else {
     return (
-      <FormModalPage
-        onClose={props.onClose}
+      <TabularModalPage
+        title={formData.name.en}
         isOpen
-        hideControls={true}
-        
+        onClose={props.onClose}
+        tabControls={
+          <>
+            <TabHeader to={`${match.url}`} exactPathMatch label="General" />
+
+            <TabHeader to={`${match.url}/variant`} label="Variants" />
+            <TabHeader to={`${match.url}/search`} label="Int / Ext Search" />
+            <TabHeader
+              to={`${match.url}/selections`}
+              label="Product Selections"
+            />
+          </>
+        }
       >
-        <TabularMainPage
-          title="Porducts Deatails"
-          tabControls={
-            <>
-              <TabHeader to={`${match.url}`} exactPathMatch label="General" />
+        <div>
+          <Spacings.Stack scale="m">
+            <Switch>
+              <SuspendedRoute path={`${match.path}`} exact>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '20px',
+                  }}
+                >
+                  <GenralInfo formik={formik} />
+                  <div style={{ flexGrow: '1', padding: '20px' }}>
+                    <Spacings.Stack scale="l">
+                      <Grid display="inline-grid" gridGap="20px">
+                        <Grid.Item>
+                          <Text.Detail tone="secondary" as="span">
+                            Date Created :
+                          </Text.Detail>
+                          <span>{'  '}</span>
+                          <Text.Detail tone="secondary" as="span">
+                            {new Date(data?.createdAt).toLocaleString()}
+                          </Text.Detail>
+                        </Grid.Item>
 
-              <TabHeader to={`${match.url}/variant`} label="Variants" />
-            </>
-          }
-        >
-          <br />
+                        <Grid.Item>
+                          <Text.Detail tone="secondary" as="span">
+                            Date Modified :
+                          </Text.Detail>
+                          <span>{'  '}</span>
+                          <Text.Detail tone="secondary" as="span">
+                            {new Date(data?.lastModifiedAt).toLocaleString()}
+                          </Text.Detail>
+                        </Grid.Item>
+                      </Grid>
+                    </Spacings.Stack>
+                  </div>
+                </div>
+              </SuspendedRoute>
 
-          <div style={{ marginTop: '30px' }}>
-            <Spacings.Stack scale="m">
-              <Switch>
-                <SuspendedRoute path={`${match.path}`} exact>
-                  "hey"
-                </SuspendedRoute>
-
-                <SuspendedRoute path={`${match.path}/variant`} exact>
-                  "hye from variant"
-                </SuspendedRoute>
-              </Switch>
-            </Spacings.Stack>
-          </div>
-        </TabularMainPage>
-      </FormModalPage>
+              <SuspendedRoute path={`${match.path}/variant`} exact>
+                <Variants />
+              </SuspendedRoute>
+              <SuspendedRoute path={`${match.path}/search`} exact>
+                "hye from search"
+              </SuspendedRoute>
+              <SuspendedRoute path={`${match.path}/selections`} exact>
+                "hye from product selections"
+              </SuspendedRoute>
+            </Switch>
+          </Spacings.Stack>
+        </div>
+      </TabularModalPage>
     );
   }
 };

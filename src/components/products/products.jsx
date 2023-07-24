@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../../index.css';
 import { Pagination } from '@commercetools-uikit/pagination';
 import DataTable from '@commercetools-uikit/data-table';
@@ -19,8 +19,12 @@ import LoadingSpinner from '@commercetools-uikit/loading-spinner';
 import { SuspendedRoute } from '@commercetools-frontend/application-shell';
 import ProductDetails from '../product-details';
 import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
+import SelectInput from '@commercetools-uikit/select-input';
+import CheckBox from './CheckBox';
 
 const products = () => {
+  const [items, setItems] = useState([]);
+  const [allCheck, setAllcheck] = useState(false);
   const match = useRouteMatch();
   const { push } = useHistory();
   const tableSorting = useDataTableSortingState({ key: 'key', order: 'asc' });
@@ -31,10 +35,31 @@ const products = () => {
     tableSorting,
   });
 
+  console.log(items, '*** this is checked ***');
+
+  const handleChange = (e) => {
+    if (e.target.checked) {
+      setItems(
+        data.results.map((item) => {
+          return { id: item.id };
+        })
+      );
+      setAllcheck(true);
+    } else {
+      setItems([]);
+      setAllcheck(false);
+    }
+  };
+
   const columns = [
     {
       key: 'checkBox',
-      label: <CheckboxInput />,
+      label: (
+        <CheckboxInput
+          isChecked={allCheck}
+          onChange={(event) => handleChange(event)}
+        />
+      ),
     },
     { key: 'name', label: 'Product Name', isSortable: true },
     { key: 'type', label: 'Product type' },
@@ -45,9 +70,17 @@ const products = () => {
   ];
 
   const itemRender = (item, column) => {
+    console.log(111111111111111111111)
     switch (column.key) {
       case 'checkBox':
-        return <CheckboxInput />;
+        return (
+          <CheckBox
+            id={item.id}
+            setItems={setItems}
+            items={items}
+            allCheck={allCheck}
+          />
+        );
       case 'name':
         return item.masterData.current.name;
       case 'type':
@@ -95,8 +128,6 @@ const products = () => {
     }
   };
 
-  console.log(data);
-  console.log(page, perPage);
   if (loading) {
     return <LoadingSpinner />;
   } else {
@@ -110,7 +141,19 @@ const products = () => {
           }}
         >
           <span style={{ fontWeight: 'bold', fontSize: '30px' }}>Products</span>
-          <button style={{ background: 'none' }}>Add products</button>
+          <div style={{ background: 'none' }}>
+            <SelectInput
+              name="form-field-name"
+              value={'action'}
+              onChange={(event) => {
+                console.log(event.target.value);
+              }}
+              options={[
+                { value: 'publish', label: 'publish ' },
+                { value: 'unpublish', label: 'unpublish' },
+              ]}
+            />
+          </div>
         </div>
         {data ? (
           <div>
@@ -122,7 +165,7 @@ const products = () => {
                 sortedBy={tableSorting.value.key}
                 sortDirection={tableSorting.value.order}
                 onSortChange={tableSorting.onChange}
-                onRowClick={(row) => push(`${match.url}/${row.id}`)}
+                // onRowClick={(row) => push(`${match.url}/${row.id}`)}
               />
               <Pagination
                 page={page.value}

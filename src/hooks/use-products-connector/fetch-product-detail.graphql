@@ -1,4 +1,4 @@
-query fetchProducts($id: String) {
+query fetchProduct($id: String!) {
   product(id: $id) {
     id
     skus
@@ -7,10 +7,16 @@ query fetchProducts($id: String) {
     key
     masterData {
       current {
-        name(locale: "en")
+        nameAllLocales {
+          locale
+          value
+        }
+        descriptionAllLocales {
+          locale
+          value
+        }
         categories {
           id
-          name(locale: "en")
         }
       }
       published
