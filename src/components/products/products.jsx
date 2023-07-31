@@ -22,10 +22,15 @@ import { Route, Switch, useHistory, useRouteMatch } from 'react-router-dom';
 import SelectInput from '@commercetools-uikit/select-input';
 import CheckBox from './CheckBox';
 
+import { useChangeStatus } from '../../hooks/use-products-connector';
+import { useEffect } from 'react';
+import { size } from 'lodash';
+
 const products = () => {
   const [items, setItems] = useState([]);
   const [allCheck, setAllcheck] = useState(false);
   const match = useRouteMatch();
+  const { changeStatus } = useChangeStatus();
   const { push } = useHistory();
   const tableSorting = useDataTableSortingState({ key: 'key', order: 'asc' });
   const { page, perPage } = usePaginationState();
@@ -35,13 +40,23 @@ const products = () => {
     tableSorting,
   });
 
+  useEffect(() => {
+    if (size(items) === 0) {
+      setAllcheck(false);
+    }
+  }, []);
+
   console.log(items, '*** this is checked ***');
 
   const handleChange = (e) => {
     if (e.target.checked) {
       setItems(
         data.results.map((item) => {
-          return { id: item.id };
+          return {
+            id: item.id,
+            version: item?.version,
+            published: item?.masterData?.published,
+          };
         })
       );
       setAllcheck(true);
@@ -60,6 +75,7 @@ const products = () => {
           onChange={(event) => handleChange(event)}
         />
       ),
+      shouldIgnoreRowClick: true,
     },
     { key: 'name', label: 'Product Name', isSortable: true },
     { key: 'type', label: 'Product type' },
@@ -70,12 +86,13 @@ const products = () => {
   ];
 
   const itemRender = (item, column) => {
-    console.log(111111111111111111111)
+    // console.log(item);
     switch (column.key) {
       case 'checkBox':
         return (
           <CheckBox
             id={item.id}
+            value={item}
             setItems={setItems}
             items={items}
             allCheck={allCheck}
@@ -145,9 +162,9 @@ const products = () => {
             <SelectInput
               name="form-field-name"
               value={'action'}
-              onChange={(event) => {
-                console.log(event.target.value);
-              }}
+              onChange={(event) =>
+                changeStatus(event, items, setAllcheck, setItems)
+              }
               options={[
                 { value: 'publish', label: 'publish ' },
                 { value: 'unpublish', label: 'unpublish' },
@@ -165,7 +182,7 @@ const products = () => {
                 sortedBy={tableSorting.value.key}
                 sortDirection={tableSorting.value.order}
                 onSortChange={tableSorting.onChange}
-                // onRowClick={(row) => push(`${match.url}/${row.id}`)}
+                onRowClick={(row) => push(`${match.url}/${row.id}`)}
               />
               <Pagination
                 page={page.value}

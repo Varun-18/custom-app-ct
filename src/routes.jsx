@@ -3,6 +3,7 @@ import Spacings from '@commercetools-uikit/spacings';
 import Channels from './components/channels';
 import Welcome from './components/welcome';
 import Products from './components/products';
+import Reports from './components/reports';
 
 const ApplicationRoutes = () => {
   const match = useRouteMatch();
@@ -26,6 +27,9 @@ const ApplicationRoutes = () => {
         </Route>
         <Route path={`${match.path}/products`}>
           <Products />
+        </Route>
+        <Route path={`${match.path}/reports`}>
+          <Reports />
         </Route>
         <Route>
           <Welcome />

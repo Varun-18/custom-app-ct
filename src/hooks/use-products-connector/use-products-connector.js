@@ -1,8 +1,12 @@
-import { useMcQuery } from '@commercetools-frontend/application-shell';
+import {
+  useMcMutation,
+  useMcQuery,
+} from '@commercetools-frontend/application-shell';
 import { GRAPHQL_TARGETS } from '@commercetools-frontend/constants';
 import fetchProductsQuery from './fetch-products-ctp.graphql';
 import fetchProductQuery from './fetch-product-detail.graphql';
 import fetchVariantQuery from './fetch-variants.graphql';
+import updateStatus from './update-products-status.graphql';
 
 export const useProductsFetcher = ({ page, perPage, tableSorting }) => {
   const { data, loading } = useMcQuery(fetchProductsQuery, {
@@ -62,4 +66,40 @@ export const fetchVariants = ({ id }) => {
   } catch (error) {
     console.log(error);
   }
+};
+
+export const useChangeStatus = () => {
+  const [updateStatusPerProduct, { data }] = useMcMutation(updateStatus);
+  const changeStatus = async (e, items, setAllcheck, setItems) => {
+    try {
+      // const newItems =
+      //   e.target.value === 'publish'
+      //     ? items.filter((item) => item.published === true)
+      //     : items.filter((item) => item.published === false);
+
+      const actions =
+        e.target.value === 'publish'
+          ? [{ publish: { scope: 'All' } }]
+          : [{ unpublish: { dummy: '' } }];
+
+      const result = await Promise.all(
+        items.map(async (product) => {
+          await updateStatusPerProduct({
+            variables: {
+              productId: product.id,
+              version: parseInt(product.version),
+              actions,
+            },
+            context: {
+              target: GRAPHQL_TARGETS.COMMERCETOOLS_PLATFORM,
+            },
+          });
+        })
+      );
+      console.log(result);
+      setItems([]);
+      setAllcheck(false);
+    } catch (error) {}
+  };
+  return { changeStatus };
 };

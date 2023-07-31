@@ -3,7 +3,7 @@ import React from 'react';
 import { useEffect } from 'react';
 import { useState } from 'react';
 
-const CheckBox = ({ id, setItems, items, allCheck }) => {
+const CheckBox = ({ id, setItems, items, allCheck, value }) => {
   const [check, setCheck] = useState(false);
   useEffect(() => {
     if (allCheck) {
@@ -14,7 +14,14 @@ const CheckBox = ({ id, setItems, items, allCheck }) => {
   }, [allCheck]);
   const handleChange = (e) => {
     if (e.target.checked) {
-      setItems([...items, { id }]);
+      setItems([
+        ...items,
+        {
+          id,
+          version: value?.version,
+          published: value?.masterData?.published,
+        },
+      ]);
       setCheck(true);
     } else {
       setItems(items.filter((item) => item.id !== id));
